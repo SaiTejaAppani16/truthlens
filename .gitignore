@@ -1,0 +1,21 @@
+# Environment
+venv/
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Mac
+.DS_Store
+
+# VS Code
+.vscode/settings.json
+
+# Database
+chroma_db/
+*.db
