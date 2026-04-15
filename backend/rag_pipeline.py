@@ -1,15 +1,19 @@
 import os
 import chromadb
-from sentence_transformers import SentenceTransformer
+from chromadb.utils import embedding_functions
 from dotenv import load_dotenv
 import anthropic
+import json
 
 load_dotenv()
 
 client = anthropic.Anthropic()
-embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 chroma_client = chromadb.PersistentClient(path="chroma_db")
-collection = chroma_client.get_or_create_collection(name="trusted_sources")
+embedding_fn = embedding_functions.DefaultEmbeddingFunction()
+collection = chroma_client.get_or_create_collection(
+    name="trusted_sources",
+    embedding_function=embedding_fn
+)
 
 
 def load_trusted_sources(filepath: str):
@@ -22,20 +26,16 @@ def load_trusted_sources(filepath: str):
         return
 
     for i, line in enumerate(lines):
-        embedding = embedding_model.encode(line).tolist()
         collection.add(
             documents=[line],
-            embeddings=[embedding],
             ids=[f"doc_{i}"]
         )
     print(f"Loaded {len(lines)} trusted source chunks.")
 
 
 def fact_check_claim(claim: str) -> dict:
-    claim_embedding = embedding_model.encode(claim).tolist()
-
     results = collection.query(
-        query_embeddings=[claim_embedding],
+        query_texts=[claim],
         n_results=3
     )
 
@@ -65,7 +65,6 @@ JSON response:"""
         messages=[{"role": "user", "content": prompt}]
     )
 
-    import json
     response_text = message.content[0].text.strip()
     result = json.loads(response_text)
     result["evidence"] = evidence_chunks
