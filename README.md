@@ -1,7 +1,9 @@
-# TruthLens 
+# TruthLens 🔍
 **AI-Powered Misinformation Detector**
-🌐 **Live Demo:** https://truthlens-siwz.onrender.com
 
+🌐 **Live Demo:** https://truthlens-frontend-5bg2.onrender.com
+
+🔧 **API:** https://truthlens-siwz.onrender.com
 In a world where fake news spreads faster than the truth, TruthLens helps you verify what you read. Paste any news article URL or raw text and TruthLens will extract the key factual claims, check each one against trusted sources, and return a credibility score with full explanations — not just a black-box verdict.
 
 ---
