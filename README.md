@@ -4,38 +4,31 @@
 🌐 **Live Demo:** https://truthlens-frontend-5bg2.onrender.com
 
 🔧 **API:** https://truthlens-siwz.onrender.com
-In a world where fake news spreads faster than the truth, TruthLens helps you verify what you read. Paste any news article URL or raw text and TruthLens will extract the key factual claims, check each one against trusted sources, and return a credibility score with full explanations — not just a black-box verdict.
 
 ---
 
-## What Makes TruthLens Different
-
-Most AI fact-checkers simply ask an LLM "is this true?" and trust its memory. TruthLens doesn't do that.
-
-Instead, it uses **Retrieval-Augmented Generation (RAG)** — it first retrieves real evidence from a trusted source database, then asks the LLM to reason on top of that evidence. This prevents hallucination and grounds every verdict in actual sources.
-
-When there isn't enough evidence to make a call, TruthLens explicitly says so — rather than making something up.
+In a world where fake news spreads faster than the truth, TruthLens helps you verify what you read. Paste any news article URL, raw text, or simply ask a question about current events — TruthLens extracts the key factual claims, checks each one against trusted sources using RAG, and returns a credibility score with full explanations.
 
 ---
 
 ## How It Works
 
-```
 **Mode 1 — Analyze an Article**
+
 1. **Scrape** — BeautifulSoup extracts clean text from any news URL
 2. **Extract** — Claude API identifies 5-8 key factual claims
-3. **Retrieve** — Each claim is searched against ChromaDB trusted sources
+3. **Retrieve** — Each claim is embedded and searched against ChromaDB trusted sources
 4. **Verify** — Claude compares each claim against retrieved evidence
 5. **Score** — A credibility score (0-100) is calculated and displayed
 
 **Mode 2 — Ask a Question**
+
 1. **Search** — NewsAPI finds the 3 most relevant current articles
-2. **Scrape** — Each article is scraped and cleaned
-3. **Extract** — Claude API identifies key factual claims
+2. **Scrape** — Each article is scraped and cleaned automatically
+3. **Extract** — Claude API identifies key factual claims from the articles
 4. **Retrieve** — Claims checked against ChromaDB trusted sources
 5. **Verify** — Claude compares claims against evidence
-6. **Score** — Credibility score returned with full breakdown
-```
+6. **Score** — Credibility score returned with full claim-by-claim breakdown
 
 ---
 
@@ -44,12 +37,13 @@ When there isn't enough evidence to make a call, TruthLens explicitly says so �
 | Layer | Technology | Purpose |
 |---|---|---|
 | Language | Python 3.11 | Core development |
-| Backend | FastAPI | REST API server |
+| Backend API | FastAPI | REST API server |
 | LLM | Anthropic Claude API | Claim extraction and verification |
 | Vector Database | ChromaDB | Store and search trusted source embeddings |
-| Embeddings | sentence-transformers | Convert text to vectors |
-| Scraping | BeautifulSoup4 | Extract article text from URLs |
+| News Search | NewsAPI | Find relevant current articles by question |
+| Web Scraping | BeautifulSoup4 | Extract article text from URLs |
 | Frontend | Streamlit | User interface |
+| Deployment | Render | Live public hosting |
 
 ---
 
@@ -62,7 +56,8 @@ truthlens/
 │   ├── scraper.py           # Fetches and cleans article text
 │   ├── claim_extractor.py   # Extracts factual claims using Claude
 │   ├── rag_pipeline.py      # ChromaDB retrieval and verification
-│   └── scorer.py            # Calculates final credibility score
+│   ├── scorer.py            # Calculates final credibility score
+│   └── news_search.py       # NewsAPI integration for question mode
 ├── frontend/
 │   └── app.py               # Streamlit UI
 ├── data/
@@ -96,7 +91,8 @@ pip install -r requirements.txt
 
 Create a `.env` file in the root directory:
 ```
-ANTHROPIC_API_KEY=your_key_here
+ANTHROPIC_API_KEY=your_anthropic_key
+NEWS_API_KEY=your_newsapi_key
 ```
 
 **5. Start the backend**
@@ -123,7 +119,7 @@ Open your browser at `http://localhost:8501`
 
 ---
 
-## Architectural Decisions
+## Key Design Decisions
 
 Every technical choice in this project was deliberate. See [DECISIONS.md](DECISIONS.md) for the full reasoning behind each one.
 

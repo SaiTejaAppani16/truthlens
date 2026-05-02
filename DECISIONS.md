@@ -63,22 +63,46 @@ scaling to millions of documents, I would revisit Pinecone.
 
 ---
 
-## 4. Why sentence-transformers instead of OpenAI Embeddings?
+## 4. Why ChromaDB's Default Embedding Function instead of sentence-transformers?
 
-Every claim and every trusted source chunk needs to be converted
-into a vector embedding. If I used OpenAI's embedding API, every
-single analysis would make paid API calls just for embeddings —
-on top of the Claude API calls already happening.
+My original implementation used the sentence-transformers library
+with the all-MiniLM-L6-v2 model for generating embeddings. It
+worked well locally but caused a critical problem on deployment:
+sentence-transformers pulls in PyTorch as a dependency, which is
+over 500MB. Render's free tier has 512MB of RAM — the app would
+crash before it even started.
 
-The sentence-transformers library runs entirely locally. The
-all-MiniLM-L6-v2 model is fast, lightweight, and produces
-high quality semantic embeddings. It costs nothing per call
-and has no external dependency. For a system where embeddings
-happen on every request, local inference was the clear choice.
+ChromaDB ships with its own built-in embedding function powered
+by ONNX runtime, which is dramatically lighter. Switching to
+ChromaDB's DefaultEmbeddingFunction eliminated the PyTorch
+dependency entirely, reduced the deployment footprint by over
+90%, and the app started reliably on the free tier.
+
+This was a real production debugging experience — identifying
+a RAM constraint, tracing it to a specific dependency, and
+finding a lighter alternative without sacrificing functionality.
 
 ---
 
-## 5. Why FastAPI instead of Flask?
+## 5. Why NewsAPI for the question feature?
+
+The original TruthLens only analyzed articles you provided. This
+was limiting — users had to find the article themselves before
+they could fact-check it.
+
+Adding a question mode made TruthLens feel like a real product.
+A user can now type "Is the Iran negotiation going well?" and
+the system automatically finds relevant current articles, scrapes
+them, extracts claims, and fact-checks them.
+
+NewsAPI was the right choice because it has a generous free tier,
+returns articles from trusted publishers, supports natural language
+queries, and requires no complex setup. It took one new module —
+news_search.py — to integrate it cleanly into the existing pipeline.
+
+---
+
+## 6. Why FastAPI instead of Flask?
 
 Flask is simple and I could have used it. But FastAPI offers
 something Flask doesn't out of the box — automatic interactive
@@ -95,7 +119,7 @@ kind of input validation matters.
 
 ---
 
-## 6. Why Streamlit instead of React?
+## 7. Why Streamlit instead of React?
 
 I want to be honest here. I could have built a React frontend.
 But that would have been the wrong decision for this project.
@@ -114,7 +138,7 @@ that was the right tradeoff.
 
 ---
 
-## 7. Why build RAG from scratch instead of using LangChain?
+## 8. Why build RAG from scratch instead of using LangChain?
 
 This is the decision I'm most proud of.
 
