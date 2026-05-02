@@ -21,21 +21,20 @@ When there isn't enough evidence to make a call, TruthLens explicitly says so �
 ## How It Works
 
 ```
-User Input (URL or Text)
-        ↓
-  Scrape & Clean Article        ← BeautifulSoup
-        ↓
-  Extract Factual Claims        ← Claude API
-        ↓
-  Embed & Search ChromaDB       ← sentence-transformers
-        ↓
-  Retrieve Trusted Evidence     ← Reuters, AP News, Wikipedia
-        ↓
-  Compare Claim vs Evidence     ← Claude API
-        ↓
-  Calculate Credibility Score   ← 0 to 100
-        ↓
-  Display Results in UI         ← Streamlit
+**Mode 1 — Analyze an Article**
+1. **Scrape** — BeautifulSoup extracts clean text from any news URL
+2. **Extract** — Claude API identifies 5-8 key factual claims
+3. **Retrieve** — Each claim is searched against ChromaDB trusted sources
+4. **Verify** — Claude compares each claim against retrieved evidence
+5. **Score** — A credibility score (0-100) is calculated and displayed
+
+**Mode 2 — Ask a Question**
+1. **Search** — NewsAPI finds the 3 most relevant current articles
+2. **Scrape** — Each article is scraped and cleaned
+3. **Extract** — Claude API identifies key factual claims
+4. **Retrieve** — Claims checked against ChromaDB trusted sources
+5. **Verify** — Claude compares claims against evidence
+6. **Score** — Credibility score returned with full breakdown
 ```
 
 ---
