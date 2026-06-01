@@ -6,10 +6,13 @@ from backend.claim_extractor import extract_claims
 from backend.rag_pipeline import load_trusted_sources, fact_check_claim
 from backend.scorer import score_article
 from backend.news_search import search_news
+import anthropic
 
 app = FastAPI(title="TruthLens API")
 
 load_trusted_sources("data/trusted_sources/sample.txt")
+
+client = anthropic.Anthropic()
 
 
 class AnalyzeRequest(BaseModel):
@@ -19,6 +22,23 @@ class AnalyzeRequest(BaseModel):
 
 class QuestionRequest(BaseModel):
     question: str
+
+
+def clean_input(text: str) -> str:
+    """Fix spelling mistakes and grammar errors in user input using Claude."""
+    message = client.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=256,
+        messages=[{
+            "role": "user",
+            "content": f"""Fix any spelling mistakes and grammar errors in this text.
+Return ONLY the corrected text with no explanation, no quotes, nothing else.
+If the text is already correct, return it as-is.
+
+Text: {text}"""
+        }]
+    )
+    return message.content[0].text.strip()
 
 
 @app.get("/")
@@ -37,7 +57,8 @@ def analyze(request: AnalyzeRequest):
     if request.url:
         article_text = scrape_article(request.url)
     else:
-        article_text = request.text
+        cleaned_text = clean_input(request.text)
+        article_text = cleaned_text
 
     claims = extract_claims(article_text)
     result = score_article(claims)
@@ -53,7 +74,8 @@ def question(request: QuestionRequest):
             detail="Provide a question"
         )
 
-    texts = search_news(request.question)
+    cleaned_question = clean_input(request.question)
+    texts = search_news(cleaned_question)
 
     if not texts:
         raise HTTPException(
@@ -64,7 +86,7 @@ def question(request: QuestionRequest):
     combined_text = " ".join(texts)
     claims = extract_claims(combined_text)
     result = score_article(claims)
-    result["question"] = request.question
+    result["question"] = cleaned_question
 
     return result
 
